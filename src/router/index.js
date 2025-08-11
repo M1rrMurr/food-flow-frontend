@@ -4,6 +4,7 @@ import DemandVuew from "@/views/DemandVuew.vue";
 import OfferView from "@/views/OfferView.vue";
 import RegisterView from "@/views/auth/RegisterView.vue";
 import LoginView from "@/views/auth/LoginView.vue";
+import CreateView from "@/views/demand/CreateView.vue";
 
 import useAuthStore from "@/stores/auth";
 
@@ -22,7 +23,12 @@ const router = createRouter({
     },
     { path: "/kinalat", name: "kinalat", component: OfferView },
     { path: "/regisztracio", name: "regisztracio", component: RegisterView },
-    { path: "/bejelentkezes", name: "bejelentkezes", component: LoginView },
+    { path: "/belepes", name: "belepes", component: LoginView },
+    {
+      path: "/kereslet/uj",
+      name: "demandCreate",
+      component: CreateView,
+    },
   ],
 });
 
@@ -35,5 +41,8 @@ router.beforeEach((to, from) => {
   if (authStore.isAuthenticated && to.name === "bejelentkezes") {
     return false;
   }
+  //if (!authStore.isAuthenticated && to.name === "demandCreate") {
+  //  return { name: "belepes" };
+  // }
 });
 export default router;

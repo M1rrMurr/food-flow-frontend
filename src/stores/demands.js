@@ -2,10 +2,15 @@ import axios from "axios";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+import useAuthStore from "./auth";
+import apiClient from "@/services/apiClient";
+
 const useDemandStore = defineStore("demands", () => {
+  const authStore = useAuthStore();
   const demands = ref({ data: [] });
   const loading = ref(false);
   const filters = ref([]);
+  const errors = ref({});
 
   // all exisitng categories
   const categories = ref([]);
@@ -40,15 +45,38 @@ const useDemandStore = defineStore("demands", () => {
     }
   };
 
+  const storeDemand = async function (demand) {
+    try {
+      loading.value = true;
+      apiClient.defaults.headers.common["Authorization"] =
+        `Bearer ${authStore.accessToken}`;
+      apiClient.defaults.headers.common["Accept-Language"] = navigator.language;
+      const res = await apiClient.post("/api/demands/store", {
+        ...demand,
+        user_id: authStore.user.id,
+      });
+      console.log(res.data);
+    } catch (error) {
+      if (error.response?.status === 422) {
+        errors.value = error.response.data.errors;
+      }
+      console.error(error);
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     demands,
     addFilter,
     fetchDemands,
+    storeDemand,
     loading,
     filters,
     removeFilter,
     clearFilters,
     categories,
+    errors,
   };
 });
 

@@ -9,13 +9,16 @@ const useAuthStore = defineStore("auth", () => {
   const user = ref({});
   const accessToken = ref("");
   const isLoading = ref(false);
-  const errors = ref({ login: {}, register: {} });
+  const errors = ref({ login: {}, register: {}, serverError: {} });
+  const localLanguage = navigator.language;
 
   const isAuthenticated = computed(() => accessToken.value && user.value);
 
   const fetchUser = async function () {
     try {
-      const res = await axios.get("http://localhost/api/user");
+      const res = await axios.get("http://localhost/api/user", {
+        headers: { Authorization: `Bearer ${accessToken.value}` },
+      });
       console.log(res);
       user.value = res.data;
     } catch (err) {
@@ -30,6 +33,8 @@ const useAuthStore = defineStore("auth", () => {
       return;
     }
     try {
+      isLoading.value = true;
+      apiClient.defaults.headers.common["Accept-Language"] = localLanguage;
       const res = await apiClient.post("/api/login", credentials);
 
       user.value = res.data.user;
@@ -44,13 +49,16 @@ const useAuthStore = defineStore("auth", () => {
         errors.value.login = error.response.data.errors;
       }
     } finally {
+      isLoading.value = false;
     }
   };
+
   const logout = async function () {
     if (!isAuthenticated.value) {
       return;
     }
     try {
+      isLoading.value = true;
       apiClient.defaults.headers.common["Authorization"] =
         `Bearer ${accessToken.value}`;
       const res = await apiClient.post("/api/logout");
@@ -60,6 +68,7 @@ const useAuthStore = defineStore("auth", () => {
     } catch (error) {
       console.log(error);
     } finally {
+      isLoading.value = false;
     }
   };
 
@@ -70,6 +79,7 @@ const useAuthStore = defineStore("auth", () => {
 
     try {
       isLoading.value = true;
+      errors.value.register = {};
       await apiClient.get("/sanctum/csrf-cookie");
       const res = await apiClient.post("/api/register", credentials);
       user.value = res.data.user;
@@ -80,7 +90,9 @@ const useAuthStore = defineStore("auth", () => {
       console.log(res);
     } catch (err) {
       console.log(err);
-      errors.value.register = err.response.data.errors;
+      if (err.response?.status === 422) {
+        errors.value.register = err.response.data.errors;
+      }
     } finally {
       isLoading.value = false;
     }
@@ -93,7 +105,9 @@ const useAuthStore = defineStore("auth", () => {
 
   return {
     user,
+    accessToken,
     isAuthenticated,
+    isLoading,
     fetchUser,
     test,
     login,

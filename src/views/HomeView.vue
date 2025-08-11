@@ -1,10 +1,8 @@
 <script setup>
-import { useRouter } from "vue-router";
 import useAuthStore from "@/stores/auth";
-
+import useDemandStore from "@/stores/demands";
 const authStore = useAuthStore();
-const router = useRouter();
-console.log(router.currentRoute.value.fullPath);
+const demandStore = useDemandStore();
 </script>
 
 <template>
@@ -18,6 +16,7 @@ console.log(router.currentRoute.value.fullPath);
       <button @click="authStore.test">test</button>
       <button @click="authStore.login">login</button>
       <button @click="authStore.logout">logout</button>
+      <button @click="demandStore.storeDemand">store</button>
     </div>
     <p>{{ authStore.user }}</p>
   </main>
